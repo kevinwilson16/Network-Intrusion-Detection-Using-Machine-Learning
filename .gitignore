@@ -1,0 +1,19 @@
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.pytest_cache/
+.DS_Store
+
+# Ignore datasets to prevent giant commits
+data/*/raw/*.csv
+data/*/raw/*.pcap
+data/*/processed/*.parquet
+
+# Ignore compiled models and outputs, though we might want to track final metrics
+artifacts/models/*.pkl
+artifacts/plots/*.png
+artifacts/plots/*.pdf
+
+# Environment variables
+.env
