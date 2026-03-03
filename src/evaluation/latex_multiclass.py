@@ -8,7 +8,9 @@ def generate_multiclass_table(json_path):
         return "Metrics file not found."
         
     with open(json_path, 'r') as f:
-        results = json.load(f)
+        data = json.load(f)
+        results = data['results']
+        limitations = data['experiment_metadata']['limitations']
         
     # We want to compare F1-scores for each class across models
     classes = [c for c in results[0]['report'].keys() if c not in ['accuracy', 'macro avg', 'weighted avg']]
@@ -38,12 +40,16 @@ def generate_multiclass_table(json_path):
     
     latex_code.extend([
         "\\end{tabular}",
-        "\\caption{Multiclass Performance: Impact of Imbalance Handling on F1-Scores}",
-        "\\label{tab:multiclass_imbalance}",
+        "\\caption{Refactored Multiclass Performance: Standardized Training Baseline (100k BENIGN)}",
+        "\\label{tab:multiclass_imbalance_refactored}",
         "\\end{table}"
     ])
     
+    if limitations:
+        latex_code.append("\n% Limitations: " + ", ".join(limitations))
+    
     return "\n".join(latex_code)
+
 
 if __name__ == "__main__":
     METRICS_FILE = "artifacts/metrics/multiclass_results.json"

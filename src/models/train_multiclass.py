@@ -45,48 +45,62 @@ def main():
     os.makedirs(MODELS_PATH, exist_ok=True)
     os.makedirs(METRICS_PATH, exist_ok=True)
     
-    X_train, y_train, X_test, y_test = load_data()
+    X_train_raw, y_train_raw, X_test, y_test = load_data()
     le = joblib.load(os.path.join(MODELS_PATH, "multiclass_label_encoder.pkl"))
     target_names = le.classes_
     
     results = []
-    
-    # 1. Random Forest with Balanced Class Weights
-    rf_balanced = RandomForestClassifier(n_estimators=100, max_depth=15, n_jobs=-1, random_state=42, class_weight='balanced')
-    res_rf_bal = train_and_eval("RF_BalancedWeights", rf_balanced, X_train, y_train, X_test, y_test, target_names)
-    results.append(res_rf_bal)
-    joblib.dump(rf_balanced, os.path.join(MODELS_PATH, "rf_multiclass_balanced.pkl"))
-    
-    # 2. XGBoost with SMOTE (Oversampling)
-    # SMOTE on 2M+ rows (with 29M resampled rows) is too slow for local run.
-    # Academic compromise: Downsample the majority class (BENIGN) to 500k, then apply SMOTE.
-    print("Downsampling majority class (BENIGN) for SMOTE feasibility...")
-    
-    # Identify the majority class (usually index 0 but we check carefully)
-    counts = y_train.value_counts()
+    limitations = []
+
+    # --- 1. Standardize the Baseline ---
+    # To ensure academic validity, both models must start from the exact same training footprint.
+    print("Standardizing baseline: Downsampling majority class (BENIGN) to 100k...")
+    counts = y_train_raw.value_counts()
     majority_class_idx = counts.idxmax()
     
-    # Separate majority and minority
-    mask_majority = (y_train == majority_class_idx)
-    X_train_maj = X_train[mask_majority]
-    y_train_maj = y_train[mask_majority]
+    mask_majority = (y_train_raw == majority_class_idx)
+    X_train_maj = X_train_raw[mask_majority]
+    y_train_maj = y_train_raw[mask_majority]
     
-    X_train_min = X_train[~mask_majority]
-    y_train_min = y_train[~mask_majority]
+    X_train_min = X_train_raw[~mask_majority]
+    y_train_min = y_train_raw[~mask_majority]
     
-    # Downsample majority to 100k
+    # Standardized Downsample
     X_maj_down = X_train_maj.sample(n=100000, random_state=42)
     y_maj_down = y_train_maj.loc[X_maj_down.index]
     
-    X_train_eff = pd.concat([X_maj_down, X_train_min])
-    y_train_eff = pd.concat([y_maj_down, y_train_min])
+    X_train_base = pd.concat([X_maj_down, X_train_min])
+    y_train_base = pd.concat([y_maj_down, y_train_min])
     
-    print(f"Applying SMOTE on efficient dataset (Size: {len(X_train_eff)})...")
-    smote = SMOTE(random_state=42, k_neighbors=1)
+    print(f"Standardized Baseline Size: {len(X_train_base)} (Samples per class logged in metrics)")
+
+    # --- 2. Random Forest with Balanced Class Weights ---
+    rf_balanced = RandomForestClassifier(n_estimators=100, max_depth=15, n_jobs=-1, random_state=42, class_weight='balanced')
+    res_rf_bal = train_and_eval("RF_BalancedWeights", rf_balanced, X_train_base, y_train_base, X_test, y_test, target_names)
+    results.append(res_rf_bal)
+    joblib.dump(rf_balanced, os.path.join(MODELS_PATH, "rf_multiclass_balanced.pkl"))
+
+    # --- 3. XGBoost with SMOTE ---
+    # Filter classes with < 6 samples to allow k_neighbors=5
+    print("Preparing data for SMOTE: Filtering ultra-rare classes...")
+    base_counts = y_train_base.value_counts()
+    keep_classes = base_counts[base_counts >= 6].index
+    dropped_classes = base_counts[base_counts < 6].index
+    
+    if len(dropped_classes) > 0:
+        dropped_names = [target_names[i] for i in dropped_classes]
+        limitations.append(f"Excluded from SMOTE due to <6 samples: {dropped_names}")
+        print(f"Dropped for SMOTE: {dropped_names}")
+
+    X_train_smote_input = X_train_base[y_train_base.isin(keep_classes)]
+    y_train_smote_input = y_train_base[y_train_base.isin(keep_classes)]
+
+    print(f"Applying SMOTE on filtered dataset (Size: {len(X_train_smote_input)})...")
+    smote = SMOTE(random_state=42, k_neighbors=5)
     
     try:
-        X_res, y_res = smote.fit_resample(X_train_eff, y_train_eff)
-        print(f"SMOTE Counts: {len(X_train_eff)} -> {len(X_res)}")
+        X_res, y_res = smote.fit_resample(X_train_smote_input, y_train_smote_input)
+        print(f"SMOTE Counts: {len(X_train_smote_input)} -> {len(X_res)}")
         
         xgb_smote = XGBClassifier(n_estimators=100, max_depth=6, n_jobs=-1, random_state=42, tree_method='hist')
         res_xgb_smote = train_and_eval("XGB_SMOTE", xgb_smote, X_res, y_res, X_test, y_test, target_names)
@@ -95,12 +109,21 @@ def main():
     except Exception as e:
         print(f"SMOTE experiment failed: {e}")
 
+    # Output results and metadata
+    output = {
+        "results": results,
+        "experiment_metadata": {
+            "standardized_base_size": len(X_train_base),
+            "limitations": limitations,
+            "training_class_distribution": base_counts.to_dict()
+        }
+    }
     
-    # Save Results
     with open(os.path.join(METRICS_PATH, "multiclass_results.json"), "w") as f:
-        json.dump(results, f, indent=4)
+        json.dump(output, f, indent=4)
     
-    print("Phase 3 Training Complete.")
+    print("Phase 3 Refactored Training Complete.")
 
 if __name__ == "__main__":
     main()
+
