@@ -10,10 +10,9 @@ data/*/raw/*.csv
 data/*/raw/*.pcap
 data/*/processed/*.parquet
 
-# Ignore compiled models and outputs, though we might want to track final metrics
+# Ignore compiled models (but we will track plots and metrics)
 artifacts/models/*.pkl
-artifacts/plots/*.png
-artifacts/plots/*.pdf
+
 
 # Environment variables
 .env

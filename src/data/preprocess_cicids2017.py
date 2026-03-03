@@ -38,13 +38,17 @@ def clean_data(df):
     # Standardise column names: strip spaces, lowercase, replace spaces with underscores
     df.columns = df.columns.astype(str).str.strip().str.lower().str.replace(' ', '_')
     
-    # CICIDS2017 specific quirks: replace infinite values with NaN so they can be dropped
-    df = df.replace([np.inf, -np.inf], np.nan)
+    # Handle Infinity: Cap to max finite value per column
+    for col in df.select_dtypes(include=[np.number]).columns:
+        max_val = df.loc[df[col] != np.inf, col].max()
+        df[col] = df[col].replace(np.inf, max_val)
+        
+    # Handle NaNs: Impute with Median
+    df = df.fillna(df.median(numeric_only=True))
     
-    initial_rows = len(df)
-    df = df.dropna()
-    dropped_rows = initial_rows - len(df)
-    print(f"Dropped {dropped_rows} rows containing NaN or Infinity values.")
+    print("Capped Infinity values and imputed NaNs with Median.")
+    return df
+
     
     return df
 
@@ -77,10 +81,11 @@ def split_and_scale(df):
     # but for purely binary MVP we exclude it from the feature set.
     original_labels = df['label']
     
-    # Drop non-predictive string columns (IPs, Flow ID, Timestamp)
-    cols_to_drop = ['flow_id', 'source_ip', 'destination_ip', 'timestamp']
+    # Drop non-predictive string columns and ports to prevent leakage
+    cols_to_drop = ['flow_id', 'source_ip', 'destination_ip', 'timestamp', 'source_port', 'destination_port']
     # Not all files might have these exact names after cleaning, so we use `errors='ignore'`
     X = X.drop(columns=cols_to_drop, errors='ignore')
+
 
     # Ensure all features are numeric type before scaling
     for col in X.columns:
