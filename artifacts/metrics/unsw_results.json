@@ -1,0 +1,182 @@
+{
+    "supervised": [
+        {
+            "name": "RF_BalancedWeights_UNSW",
+            "accuracy": 0.9681226747504971,
+            "report": {
+                "Analysis": {
+                    "precision": 0.14371859296482412,
+                    "recall": 0.2672897196261682,
+                    "f1-score": 0.1869281045751634,
+                    "support": 535.0
+                },
+                "Backdoor": {
+                    "precision": 0.035193466848143104,
+                    "recall": 0.5041782729805014,
+                    "f1-score": 0.06579425663395129,
+                    "support": 359.0
+                },
+                "Backdoors": {
+                    "precision": 0.1426448736998514,
+                    "recall": 0.897196261682243,
+                    "f1-score": 0.24615384615384617,
+                    "support": 107.0
+                },
+                "DoS": {
+                    "precision": 0.32215357458075905,
+                    "recall": 0.22317334148578416,
+                    "f1-score": 0.2636806935163446,
+                    "support": 3271.0
+                },
+                "Exploits": {
+                    "precision": 0.7923497267759563,
+                    "recall": 0.5047725996631106,
+                    "f1-score": 0.616682672520236,
+                    "support": 8905.0
+                },
+                "Fuzzers": {
+                    "precision": 0.4310726716591077,
+                    "recall": 0.8428541967415962,
+                    "f1-score": 0.5704117236566644,
+                    "support": 4849.0
+                },
+                "Generic": {
+                    "precision": 0.9998333492048377,
+                    "recall": 0.974498793391498,
+                    "f1-score": 0.9870035252643948,
+                    "support": 43096.0
+                },
+                "Normal": {
+                    "precision": 0.9999977143170607,
+                    "recall": 0.9859200951880889,
+                    "f1-score": 0.9929090085888485,
+                    "support": 443753.0
+                },
+                "Reconnaissance": {
+                    "precision": 0.7925052047189451,
+                    "recall": 0.8162973552537527,
+                    "f1-score": 0.8042253521126761,
+                    "support": 2798.0
+                },
+                "Shellcode": {
+                    "precision": 0.24909090909090909,
+                    "recall": 0.9072847682119205,
+                    "f1-score": 0.3908701854493581,
+                    "support": 302.0
+                },
+                "Worms": {
+                    "precision": 0.08362369337979095,
+                    "recall": 0.6857142857142857,
+                    "f1-score": 0.14906832298136646,
+                    "support": 35.0
+                },
+                "accuracy": 0.9681226747504971,
+                "macro avg": {
+                    "precision": 0.4538348888400168,
+                    "recall": 0.6917436081762681,
+                    "f1-score": 0.47942979013207726,
+                    "support": 508010.0
+                },
+                "weighted avg": {
+                    "precision": 0.9831323842697522,
+                    "recall": 0.9681226747504971,
+                    "f1-score": 0.9739684027215143,
+                    "support": 508010.0
+                }
+            },
+            "duration": 11.358747482299805
+        }
+    ],
+    "unsupervised": {
+        "precision": 0.06982952629996446,
+        "recall": 0.11927105218108533,
+        "f1": 0.08808689155795645
+    },
+    "hybrid": {
+        "accuracy": 0.8735123324344009,
+        "report": {
+            "Analysis": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1-score": 0.0,
+                "support": 535.0
+            },
+            "Backdoor": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1-score": 0.0,
+                "support": 359.0
+            },
+            "Backdoors": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1-score": 0.0,
+                "support": 107.0
+            },
+            "DoS": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1-score": 0.0,
+                "support": 3271.0
+            },
+            "Exploits": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1-score": 0.0,
+                "support": 8905.0
+            },
+            "Fuzzers": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1-score": 0.0,
+                "support": 4849.0
+            },
+            "Generic": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1-score": 0.0,
+                "support": 43096.0
+            },
+            "Normal": {
+                "precision": 0.8735123324344009,
+                "recall": 1.0,
+                "f1-score": 0.9324863437641514,
+                "support": 443753.0
+            },
+            "Reconnaissance": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1-score": 0.0,
+                "support": 2798.0
+            },
+            "Shellcode": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1-score": 0.0,
+                "support": 302.0
+            },
+            "Worms": {
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1-score": 0.0,
+                "support": 35.0
+            },
+            "accuracy": 0.8735123324344009,
+            "macro avg": {
+                "precision": 0.07941021203949099,
+                "recall": 0.09090909090909091,
+                "f1-score": 0.08477148579674104,
+                "support": 508010.0
+            },
+            "weighted avg": {
+                "precision": 0.7630237949149873,
+                "recall": 0.8735123324344009,
+                "f1-score": 0.8145383211046504,
+                "support": 508010.0
+            }
+        }
+    },
+    "metadata": {
+        "limitations": []
+    }
+}
