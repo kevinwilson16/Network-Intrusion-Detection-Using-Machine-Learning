@@ -30,10 +30,15 @@ def load_data():
     
     return X_train, y_train, y_train_binary, X_test, y_test, y_test_binary
 
-def train_and_eval(name, model, X_train, y_train, X_test, y_test, target_names):
+def train_and_eval(name, model, X_train, y_train, X_test, y_test, target_names, sample_weight=None):
     print(f"--- Experiment: {name} ---")
     start_time = time.time()
-    model.fit(X_train, y_train)
+    
+    if sample_weight is not None:
+        model.fit(X_train, y_train, sample_weight=sample_weight)
+    else:
+        model.fit(X_train, y_train)
+        
     duration = time.time() - start_time
     
     y_pred = model.predict(X_test)
@@ -83,11 +88,13 @@ def main():
     print(f"Standardized Baseline Size: {len(X_train_base)}")
 
 
-    # --- 2. Random Forest (Balanced Weights) ---
-    rf_balanced = RandomForestClassifier(n_estimators=100, max_depth=15, n_jobs=-1, random_state=42, class_weight='balanced')
-    res_rf = train_and_eval("RF_BalancedWeights_UNSW", rf_balanced, X_train_base, y_train_base, X_test, y_test_enc, target_names)
-    results.append(res_rf)
-    joblib.dump(rf_balanced, os.path.join(MODELS_PATH, "rf_unsw_balanced.pkl"))
+    # --- 2. XGBoost (Balanced Weights) ---
+    from sklearn.utils.class_weight import compute_sample_weight
+    sample_weights_unsw = compute_sample_weight('balanced', y_train_base)
+    xgb_balanced = XGBClassifier(n_estimators=100, max_depth=6, n_jobs=-1, random_state=42, tree_method='hist')
+    res_xgb_bal = train_and_eval("XGB_BalancedWeights_UNSW", xgb_balanced, X_train_base, y_train_base, X_test, y_test_enc, target_names, sample_weight=sample_weights_unsw)
+    results.append(res_xgb_bal)
+    joblib.dump(xgb_balanced, os.path.join(MODELS_PATH, "xgb_unsw_balanced.pkl"))
 
     # --- 3. XGBoost (SMOTE) ---
     print("Preparing SMOTE: Filtering ultra-rare classes (<6 samples)...")
@@ -114,57 +121,16 @@ def main():
     except Exception as e:
         print(f"SMOTE failed: {e}")
 
-    # --- 4. True Unsupervised (Isolation Forest) ---
-    print("\n--- Experiment: Isolation Forest (True Unsupervised) ---")
-    iso_forest = IsolationForest(n_estimators=100, contamination=0.15, random_state=42, n_jobs=-1)
-    iso_forest.fit(X_train_base) # Mixed dataset, no labels
-    
-    preds_raw = iso_forest.predict(X_test)
-    # Map -1 (Anomaly) to 1 (Attack), 1 (Normal) to 0 (Normal) for binary eval
-    y_pred_unsub = np.where(preds_raw == -1, 1, 0)
-    y_test_bin = np.where(y_test != 'Normal', 1, 0)
-
-    
-    prec, rec, f1, _ = precision_recall_fscore_support(y_test_bin, y_pred_unsub, average='binary', zero_division=0)
-    print(f"Unsupervised (Binary) Metrics: Precision={prec:.4f}, Recall={rec:.4f}, F1={f1:.4f}")
-    
-    joblib.dump(iso_forest, os.path.join(MODELS_PATH, "iso_forest_unsw.pkl"))
-
-    # --- 5. Hybrid Evaluation ---
-    print("\n--- Experiment: Hybrid (IF -> XGB) ---")
-    # Identify indices flagged as anomalies by Stage 1
-    anomaly_mask = (preds_raw == -1)
-    
-    # Initialize final predictions with 'Normal' index
-    normal_idx = list(target_names).index('Normal')
-    final_hybrid_preds = np.full(len(X_test), fill_value=normal_idx)
-    
-    if np.any(anomaly_mask):
-        X_test_flagged = X_test[anomaly_mask]
-        # Use our saved XGB model
-        try:
-           xgb_model = joblib.load(os.path.join(MODELS_PATH, "xgb_unsw_smote.pkl"))
-           stage2_preds = xgb_model.predict(X_test_flagged)
-           final_hybrid_preds[anomaly_mask] = stage2_preds
-        except:
-           print("Hybrid Stage 2 skipped (XGB model missing)")
-
-    acc_hyb = accuracy_score(y_test_enc, final_hybrid_preds)
-    report_hyb = classification_report(y_test_enc, final_hybrid_preds, target_names=target_names, output_dict=True, zero_division=0)
-    print(f"Hybrid Accuracy: {acc_hyb:.4f}")
-
     # Output JSON Metrics
     output = {
         "supervised": results,
-        "unsupervised": {"precision": prec, "recall": rec, "f1": f1},
-        "hybrid": {"accuracy": acc_hyb, "report": report_hyb},
         "metadata": {"limitations": limitations}
     }
     
-    with open(os.path.join(METRICS_PATH, "unsw_results.json"), "w") as f:
+    with open(os.path.join(METRICS_PATH, "unsw_multiclass_results.json"), "w") as f:
         json.dump(output, f, indent=4)
     
-    print("Phase 6 UNSW-NB15 Pipeline Complete.")
+    print("UNSW-NB15 Multiclass Pipeline Complete.")
 
 if __name__ == "__main__":
     main()

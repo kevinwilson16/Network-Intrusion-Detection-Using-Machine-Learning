@@ -6,7 +6,7 @@ import time
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import RobustScaler
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support, roc_auc_score, precision_recall_curve, auc
+from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support, average_precision_score
 
 # Paths
 CROSS_DATA_PATH = "data/cross_dataset"
@@ -30,6 +30,24 @@ def load_split_scale(train_path, test_path):
         X_train_full, y_train_full, test_size=0.2, random_state=42, stratify=y_train_full
     )
     
+    X_train, X_val, X_test_ext = X_train.copy(), X_val.copy(), X_test_ext.copy()
+    
+    # ------------- RIGOROUS IMPUTATION -------------
+    print("Imputing NaNs and Infs strictly from X_train...")
+    numeric_cols = X_train.select_dtypes(include=[np.number]).columns
+    for col in numeric_cols:
+        if np.isinf(X_train[col]).any() or np.isinf(X_val[col]).any() or np.isinf(X_test_ext[col]).any():
+            X_train[col] = X_train[col].replace([np.inf, -np.inf], np.nan)
+            X_val[col] = X_val[col].replace([np.inf, -np.inf], np.nan)
+            X_test_ext[col] = X_test_ext[col].replace([np.inf, -np.inf], np.nan)
+            
+        if X_train[col].isna().any() or X_val[col].isna().any() or X_test_ext[col].isna().any():
+            median_train_val = X_train[col].median()
+            X_train[col] = X_train[col].fillna(median_train_val)
+            X_val[col] = X_val[col].fillna(median_train_val)
+            X_test_ext[col] = X_test_ext[col].fillna(median_train_val)
+            
+    # ------------- ROBUST SCALING -------------
     # Fit Scaler STRICTLY on the training subset of the training dataset
     scaler = RobustScaler()
     X_train_scaled = scaler.fit_transform(X_train)
@@ -49,10 +67,9 @@ def evaluate_model(model, X_test, y_test, name):
     y_probs = model.predict_proba(X_test)[:, 1]
     
     acc = accuracy_score(y_test, y_pred)
-    prec, rec, f1, _ = precision_recall_fscore_support(y_test, y_pred, average='binary')
+    prec, rec, f1, _ = precision_recall_fscore_support(y_test, y_pred, average='binary', zero_division=0)
     
-    p, r, _ = precision_recall_curve(y_test, y_probs)
-    auc_pr = auc(r, p)
+    auc_pr = average_precision_score(y_test, y_probs)
     
     print(f"Result for {name}: Acc={acc:.4f}, F1={f1:.4f}, AUC-PR={auc_pr:.4f}, Time={duration:.2f}s")
     

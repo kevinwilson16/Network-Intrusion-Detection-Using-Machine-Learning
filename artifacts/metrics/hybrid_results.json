@@ -1,7 +1,7 @@
 {
     "experiment_name": "Two-Stage Hybrid Pipeline (IF -> XGBoost)",
     "accuracy": 0.7993344756671673,
-    "inference_duration_seconds": 2.9518659114837646,
+    "inference_duration_seconds": 3.951061487197876,
     "stage1_anomalies_flagged": 93630,
     "stage1_bypassed": 530239,
     "report": {

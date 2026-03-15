@@ -28,10 +28,15 @@ def load_data():
     
     return X_train, y_train, X_test, y_test
 
-def train_and_eval(name, model, X_train, y_train, X_test, y_test, target_names):
+def train_and_eval(name, model, X_train, y_train, X_test, y_test, target_names, sample_weight=None):
     print(f"--- Experiment: {name} ---")
     start_time = time.time()
-    model.fit(X_train, y_train)
+    
+    if sample_weight is not None:
+        model.fit(X_train, y_train, sample_weight=sample_weight)
+    else:
+        model.fit(X_train, y_train)
+        
     duration = time.time() - start_time
     
     y_pred = model.predict(X_test)
@@ -74,11 +79,13 @@ def main():
     
     print(f"Standardized Baseline Size: {len(X_train_base)} (Samples per class logged in metrics)")
 
-    # --- 2. Random Forest with Balanced Class Weights ---
-    rf_balanced = RandomForestClassifier(n_estimators=100, max_depth=15, n_jobs=-1, random_state=42, class_weight='balanced')
-    res_rf_bal = train_and_eval("RF_BalancedWeights", rf_balanced, X_train_base, y_train_base, X_test, y_test, target_names)
-    results.append(res_rf_bal)
-    joblib.dump(rf_balanced, os.path.join(MODELS_PATH, "rf_multiclass_balanced.pkl"))
+    # --- 2. XGBoost with Balanced Sample Weights ---
+    from sklearn.utils.class_weight import compute_sample_weight
+    sample_weights = compute_sample_weight('balanced', y_train_base)
+    xgb_balanced = XGBClassifier(n_estimators=100, max_depth=6, n_jobs=-1, random_state=42, tree_method='hist')
+    res_xgb_bal = train_and_eval("XGB_BalancedWeights", xgb_balanced, X_train_base, y_train_base, X_test, y_test, target_names, sample_weight=sample_weights)
+    results.append(res_xgb_bal)
+    joblib.dump(xgb_balanced, os.path.join(MODELS_PATH, "xgb_multiclass_balanced.pkl"))
 
     # --- 3. XGBoost with SMOTE ---
     # Filter classes with < 6 samples to allow k_neighbors=5

@@ -1,0 +1,88 @@
+{
+    "experiment_name": "Two-Stage Hybrid Pipeline (IF -> XGBoost) UNSW-NB15",
+    "accuracy": 0.8820751560008662,
+    "inference_duration_seconds": 3.3432276248931885,
+    "stage1_anomalies_flagged": 106322,
+    "stage1_bypassed": 401688,
+    "report": {
+        "Analysis": {
+            "precision": 0.1747159090909091,
+            "recall": 0.22990654205607478,
+            "f1-score": 0.19854721549636803,
+            "support": 535.0
+        },
+        "Backdoor": {
+            "precision": 0.10526315789473684,
+            "recall": 0.027855153203342618,
+            "f1-score": 0.04405286343612335,
+            "support": 359.0
+        },
+        "Backdoors": {
+            "precision": 0.11764705882352941,
+            "recall": 0.018691588785046728,
+            "f1-score": 0.03225806451612903,
+            "support": 107.0
+        },
+        "DoS": {
+            "precision": 0.4112271540469974,
+            "recall": 0.0963008254356466,
+            "f1-score": 0.15605647758236313,
+            "support": 3271.0
+        },
+        "Exploits": {
+            "precision": 0.8557260920897285,
+            "recall": 0.4069623806850084,
+            "f1-score": 0.5515981735159817,
+            "support": 8905.0
+        },
+        "Fuzzers": {
+            "precision": 0.49560565533053114,
+            "recall": 0.26747783048051144,
+            "f1-score": 0.347441735869274,
+            "support": 4849.0
+        },
+        "Generic": {
+            "precision": 0.9096153846153846,
+            "recall": 0.010975496565806571,
+            "f1-score": 0.021689288334556127,
+            "support": 43096.0
+        },
+        "Normal": {
+            "precision": 0.8868177155578216,
+            "recall": 0.9955493258637125,
+            "f1-score": 0.9380431759162726,
+            "support": 443753.0
+        },
+        "Reconnaissance": {
+            "precision": 0.6083445491251682,
+            "recall": 0.16154395997140814,
+            "f1-score": 0.2552951143744705,
+            "support": 2798.0
+        },
+        "Shellcode": {
+            "precision": 0.08860759493670886,
+            "recall": 0.023178807947019868,
+            "f1-score": 0.03674540682414698,
+            "support": 302.0
+        },
+        "Worms": {
+            "precision": 0.3013698630136986,
+            "recall": 0.6285714285714286,
+            "f1-score": 0.4074074074074074,
+            "support": 35.0
+        },
+        "accuracy": 0.8820751560008662,
+        "macro avg": {
+            "precision": 0.45044910313865577,
+            "recall": 0.26063757632409146,
+            "f1-score": 0.2717395384793721,
+            "support": 508010.0
+        },
+        "weighted avg": {
+            "precision": 0.877897421800023,
+            "recall": 0.8820751560008662,
+            "f1-score": 0.8369255406710672,
+            "support": 508010.0
+        }
+    }
+}

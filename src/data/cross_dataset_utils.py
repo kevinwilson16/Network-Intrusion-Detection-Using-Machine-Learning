@@ -54,15 +54,11 @@ def load_and_map_cic():
     final_df.drop(columns=['label'], inplace=True)
     
     # Cleaning
-    print("Cleaning CIC-IDS2017 shared features...")
+    print("Coercing CIC-IDS2017 shared features to numeric...")
     numeric_cols = [c for c in SHARED_FEATURES if c in final_df.columns]
     for col in numeric_cols:
         final_df[col] = pd.to_numeric(final_df[col], errors='coerce')
-        if np.isinf(final_df[col]).any():
-            max_val = final_df.loc[np.isfinite(final_df[col]), col].max()
-            final_df[col] = final_df[col].replace([np.inf, -np.inf], max_val)
-    
-    final_df.fillna(final_df.median(), inplace=True)
+        # We DO NOT impute or handle infinity here to prevent data leakage.
     
     # Units: CIC-IDS2017 duration and IAT are already in Microseconds.
     
@@ -118,11 +114,7 @@ def load_and_map_unsw():
     numeric_cols = [c for c in SHARED_FEATURES if c in final_df.columns]
     for col in numeric_cols:
         final_df[col] = pd.to_numeric(final_df[col], errors='coerce')
-        if np.isinf(final_df[col]).any():
-            max_val = final_df.loc[np.isfinite(final_df[col]), col].max()
-            final_df[col] = final_df[col].replace([np.inf, -np.inf], max_val)
-            
-    final_df.fillna(final_df.median(), inplace=True)
+        # We DO NOT impute or handle infinity here to prevent data leakage.
     
     # UNIT CONVERSION TO MATCH CIC-IDS2017 (Microseconds)
     print("Applying unit conversions (Seconds and Milliseconds -> Microseconds)...")

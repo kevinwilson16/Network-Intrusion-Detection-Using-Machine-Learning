@@ -66,46 +66,60 @@ def clean_unsw(df):
 
     # Identify non-numeric columns for separate handling
     numeric_cols = df.select_dtypes(include=[np.number]).columns
-    
-    # 3. Handle Infinity (Cap to max finite value)
-    print("Capping Infinity...")
-    for col in numeric_cols:
-        if np.isinf(df[col]).any():
-            max_val = df.loc[np.isfinite(df[col]), col].max()
-            df[col] = df[col].replace([np.inf, -np.inf], max_val)
-            
-    # 4. Handle NaNs (Median Imputation)
-    print("Imputing NaNs...")
-    for col in numeric_cols:
-        if df[col].isnull().any():
-            median_val = df[col].median()
-            df[col].fillna(median_val, inplace=True)
 
-            
-    # 5. One-Hot Encoding for categorical features (proto, state, service)
-    print("Encoding categorical features...")
-    df = pd.get_dummies(df, columns=['proto', 'state', 'service'], drop_first=True)
-    
-    # CRITICAL: get_dummies can introduce NaNs if there are mismatched indices or 
-    # if new columns are created. We must ensure the final feature set is clean.
-    df.fillna(0, inplace=True)
-    
+    # We NO LONGER do One-Hot Encoding or global fillna() here before the split to prevent structural leakage.
     return df
 
 
 def split_and_save(df):
-    print("Splitting and Scaling...")
+    print("Splitting and Scaling UNSW-NB15...")
     
     X = df.drop(columns=['attack_cat', 'Label'])
     y_multiclass = df['attack_cat']
     y_binary = df['Label']
     
-    # Stratified Split
+    print("Replacing Infs with NaNs before the split...")
+    X.replace([np.inf, -np.inf], np.nan, inplace=True)
+    
+    # ------------- 1. STRATIFIED SPLIT -------------
     X_train, X_test, y_train_multi, y_test_multi = train_test_split(
         X, y_multiclass, test_size=0.2, random_state=42, stratify=y_multiclass
     )
     
-    # Scale numerical features
+    # Convert to DataFrames directly from splits to avoid index misalignment warnings
+    X_train = pd.DataFrame(X_train, columns=X.columns)
+    X_test = pd.DataFrame(X_test, columns=X.columns)
+    
+    # ------------- 1.5. CATEGORICAL ENCODING -------------
+    from sklearn.preprocessing import OneHotEncoder
+    categorical_cols = ['proto', 'state', 'service']
+    categorical_cols = [c for c in categorical_cols if c in X_train.columns]
+    
+    if categorical_cols:
+        print("Applying OneHotEncoding fitted strictly on X_train...")
+        ohe = OneHotEncoder(handle_unknown='ignore', sparse_output=False, drop='first')
+        
+        train_cat = ohe.fit_transform(X_train[categorical_cols])
+        test_cat = ohe.transform(X_test[categorical_cols])
+        
+        cat_feature_names = ohe.get_feature_names_out(categorical_cols)
+        train_cat_df = pd.DataFrame(train_cat, columns=cat_feature_names, index=X_train.index)
+        test_cat_df = pd.DataFrame(test_cat, columns=cat_feature_names, index=X_test.index)
+        
+        X_train = pd.concat([X_train.drop(columns=categorical_cols), train_cat_df], axis=1)
+        X_test = pd.concat([X_test.drop(columns=categorical_cols), test_cat_df], axis=1)
+    
+    # ------------- 2. RIGOROUS IMPUTATION -------------
+    print("Imputing NaNs purely based on X_train statistics...")
+    numeric_cols = X_train.select_dtypes(include=[np.number]).columns
+    
+    for col in numeric_cols:
+        if X_train[col].isna().any() or X_test[col].isna().any():
+            median_train_val = X_train[col].median()
+            X_train[col] = X_train[col].fillna(median_train_val)
+            X_test[col] = X_test[col].fillna(median_train_val)
+    
+    # ------------- 3. ROBUST SCALING -------------
     scaler = RobustScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
@@ -117,11 +131,14 @@ def split_and_save(df):
     # Attach labels back for Parquet storage
     train_final = X_train_df.copy()
     train_final['multiclass_label'] = y_train_multi.values
-    train_final['label'] = y_binary.iloc[y_train_multi.index].values # Map binary label back
+    
+    # Make sure we use proper alignment for numpy to dict extraction
+    # Since y_binary is a Series, use .loc for absolute indexing matching train_test_split
+    train_final['label'] = y_binary.loc[y_train_multi.index].values
     
     test_final = X_test_df.copy()
     test_final['multiclass_label'] = y_test_multi.values
-    test_final['label'] = y_binary.iloc[y_test_multi.index].values
+    test_final['label'] = y_binary.loc[y_test_multi.index].values
     
     os.makedirs(PROCESSED_DATA_PATH, exist_ok=True)
     train_final.to_parquet(os.path.join(PROCESSED_DATA_PATH, "train_unsw.parquet"))
