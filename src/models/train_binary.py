@@ -1,56 +1,91 @@
 import os
 import joblib
 import pandas as pd
+import numpy as np
+import time
+import json
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-import time
+from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support, average_precision_score
 
 # Paths
 PROCESSED_DATA_PATH = "data/cicids2017/processed"
 MODELS_PATH = "artifacts/models"
+METRICS_PATH = "artifacts/metrics"
 
 def load_data():
-    print("Loading processed training data...")
+    print("Loading CIC-IDS2017 preprocessed binary data...")
     train_df = pd.read_parquet(os.path.join(PROCESSED_DATA_PATH, "train.parquet"))
-    # The last two columns were 'is_attack' and 'label' (original string)
-    # We drop both for training features
+    test_df = pd.read_parquet(os.path.join(PROCESSED_DATA_PATH, "test.parquet"))
+    
+    # Features
     X_train = train_df.drop(columns=['is_attack', 'label'])
     y_train = train_df['is_attack']
-    return X_train, y_train
+    
+    X_test = test_df.drop(columns=['is_attack', 'label'])
+    y_test = test_df['is_attack']
+    
+    return X_train, y_train, X_test, y_test
 
-def train_logistic_regression(X_train, y_train):
-    print("Training Logistic Regression...")
+def train_and_eval_binary(name, model, X_train, y_train, X_test, y_test):
+    print(f"--- Training: {name} ---")
     start_time = time.time()
-    lr = LogisticRegression(max_iter=1000, n_jobs=-1, random_state=42, class_weight='balanced')
-    lr.fit(X_train, y_train)
+    model.fit(X_train, y_train)
     duration = time.time() - start_time
-    print(f"Logistic Regression trained in {duration:.2f}s")
-    return lr
-
-def train_random_forest(X_train, y_train):
-    print("Training Random Forest...")
-    start_time = time.time()
-    # Using smaller n_estimators for MVP speed, max_depth to prevent overfitting
-    rf = RandomForestClassifier(n_estimators=100, max_depth=15, n_jobs=-1, random_state=42, class_weight='balanced')
-    rf.fit(X_train, y_train)
-    duration = time.time() - start_time
-    print(f"Random Forest trained in {duration:.2f}s")
-    return rf
+    
+    y_pred = model.predict(X_test)
+    y_probs = model.predict_proba(X_test)[:, 1]
+    
+    acc = accuracy_score(y_test, y_pred)
+    precision, recall, f1, _ = precision_recall_fscore_support(y_test, y_pred, average='binary')
+    
+    # Calculate AUC-PR
+    auc_pr = average_precision_score(y_test, y_probs)
+    
+    print(f"Accuracy: {acc:.4f} | F1: {f1:.4f} | AUC-PR: {auc_pr:.4f} | Time: {duration:.2f}s")
+    
+    return {
+        "model": name,
+        "accuracy": acc,
+        "precision": precision,
+        "recall": recall,
+        "f1": f1,
+        "auc_pr": auc_pr,
+        "duration": duration,
+        "report": classification_report(y_test, y_pred, output_dict=True)
+    }
 
 def main():
     os.makedirs(MODELS_PATH, exist_ok=True)
+    os.makedirs(METRICS_PATH, exist_ok=True)
     
-    X_train, y_train = load_data()
+    X_train, y_train, X_test, y_test = load_data()
     
-    # Train Logistic Regression
-    lr_model = train_logistic_regression(X_train, y_train)
-    joblib.dump(lr_model, os.path.join(MODELS_PATH, "lr_binary.pkl"))
+    results = []
+
+    # 1. Logistic Regression (Balanced)
+    lr = LogisticRegression(max_iter=1000, class_weight='balanced', random_state=42, n_jobs=-1)
+    res_lr = train_and_eval_binary("Logistic Regression", lr, X_train, y_train, X_test, y_test)
+    results.append(res_lr)
+    joblib.dump(lr, os.path.join(MODELS_PATH, "lr_binary.pkl"))
+
+    # 2. Random Forest (Balanced, Limited Depth)
+    rf = RandomForestClassifier(
+        n_estimators=100, 
+        max_depth=15, 
+        class_weight='balanced', 
+        random_state=42, 
+        n_jobs=-1
+    )
+    res_rf = train_and_eval_binary("Random Forest", rf, X_train, y_train, X_test, y_test)
+    results.append(res_rf)
+    joblib.dump(rf, os.path.join(MODELS_PATH, "rf_binary.pkl"))
+
+    # Save Metrics
+    with open(os.path.join(METRICS_PATH, "binary_results.json"), "w") as f:
+        json.dump(results, f, indent=4)
     
-    # Train Random Forest
-    rf_model = train_random_forest(X_train, y_train)
-    joblib.dump(rf_model, os.path.join(MODELS_PATH, "rf_binary.pkl"))
-    
-    print(f"Models saved to {MODELS_PATH}")
+    print(f"\nPhase CIC-IDS2017 Binary Baseline Complete. Results saved to {METRICS_PATH}")
 
 if __name__ == "__main__":
     main()

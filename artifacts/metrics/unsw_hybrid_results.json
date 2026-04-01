@@ -1,7 +1,7 @@
 {
     "experiment_name": "Two-Stage Hybrid Pipeline (IF -> XGBoost) UNSW-NB15",
     "accuracy": 0.8820751560008662,
-    "inference_duration_seconds": 3.3432276248931885,
+    "inference_duration_seconds": 2.7567923069000244,
     "stage1_anomalies_flagged": 106322,
     "stage1_bypassed": 401688,
     "report": {

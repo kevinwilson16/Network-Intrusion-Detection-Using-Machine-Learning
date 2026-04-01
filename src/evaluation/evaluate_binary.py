@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
-    confusion_matrix, classification_report, precision_recall_curve, auc
+    confusion_matrix, classification_report, average_precision_score
 )
 
 # Paths
@@ -36,8 +36,7 @@ def evaluate_model(model, X_test, y_test, model_name):
     }
     
     if y_prob is not None:
-        precision, recall, _ = precision_recall_curve(y_test, y_prob)
-        metrics["auc_pr"] = auc(recall, precision)
+        metrics["auc_pr"] = average_precision_score(y_test, y_prob)
         
     # Save confusion matrix plot
     cm = confusion_matrix(y_test, y_pred)

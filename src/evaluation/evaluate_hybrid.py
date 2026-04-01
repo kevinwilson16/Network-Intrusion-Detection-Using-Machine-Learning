@@ -32,6 +32,12 @@ def main():
     iso_forest, xgb_smote, le, X_test, y_test = load_models_and_data()
     target_names = le.classes_
     
+    print("Filtering test data to match XGBoost classes...")
+    valid_classes = xgb_smote.classes_
+    mask_valid = y_test.isin(valid_classes)
+    X_test = X_test[mask_valid].reset_index(drop=True)
+    y_test = y_test[mask_valid].reset_index(drop=True)
+    
     # Identify the integer index for the 'BENIGN' class
     # Usually 0, but we locate it dynamically from the LabelEncoder
     benign_idx = list(le.classes_).index('BENIGN')
@@ -74,7 +80,8 @@ def main():
     # Final Evaluation
     print("\n--- HYBRID PIPELINE EVALUATION ---")
     acc = accuracy_score(y_test, final_preds)
-    report = classification_report(y_test, final_preds, target_names=target_names, output_dict=True, zero_division=0)
+    filtered_target_names = [target_names[i] for i in valid_classes]
+    report = classification_report(y_test, final_preds, labels=valid_classes, target_names=filtered_target_names, output_dict=True, zero_division=0)
     
     print(f"Hybrid Accuracy: {acc:.4f} | Total Inference Time: {duration:.2f}s")
     

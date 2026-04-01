@@ -7,8 +7,8 @@ import json
 from xgboost import XGBClassifier
 from sklearn.ensemble import RandomForestClassifier, IsolationForest
 from imblearn.over_sampling import SMOTE
-from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support
-from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support, average_precision_score
+from sklearn.preprocessing import LabelEncoder, label_binarize
 
 # Paths
 PROCESSED_DATA_PATH = "data/unsw-nb15/processed"
@@ -42,11 +42,18 @@ def train_and_eval(name, model, X_train, y_train, X_test, y_test, target_names, 
     duration = time.time() - start_time
     
     y_pred = model.predict(X_test)
+    y_probs = model.predict_proba(X_test)
     acc = accuracy_score(y_test, y_pred)
+    
+    # Calculate AUC-PR (Macro)
+    classes = np.arange(len(target_names))
+    y_test_bin = label_binarize(y_test, classes=classes)
+    auc_pr = average_precision_score(y_test_bin, y_probs, average='macro')
+    
     report = classification_report(y_test, y_pred, target_names=target_names, output_dict=True, zero_division=0)
     
-    print(f"Accuracy: {acc:.4f} | Time: {duration:.2f}s")
-    return {"name": name, "accuracy": acc, "report": report, "duration": duration}
+    print(f"Accuracy: {acc:.4f} | AUC-PR: {auc_pr:.4f} | Time: {duration:.2f}s")
+    return {"name": name, "accuracy": acc, "auc_pr": auc_pr, "report": report, "duration": duration}
 
 def main():
     os.makedirs(MODELS_PATH, exist_ok=True)
@@ -114,8 +121,37 @@ def main():
     smote = SMOTE(random_state=42, k_neighbors=5)
     try:
         X_res, y_res = smote.fit_resample(X_smote_in, y_smote_in)
+        print(f"SMOTE Counts: {len(X_smote_in)} -> {len(X_res)}")
+        
+        # --- FIX: TEMPORARY LABEL REMAPPING ---
+        uniq_labels = np.unique(y_res)
+        label_mapping = {old_label: new_label for new_label, old_label in enumerate(uniq_labels)}
+        inverse_mapping = {new_label: old_label for new_label, old_label in enumerate(uniq_labels)}
+        
+        y_res_mapped = np.array([label_mapping[y] for y in y_res])
+        
         xgb_smote = XGBClassifier(n_estimators=100, max_depth=6, n_jobs=-1, random_state=42, tree_method='hist')
-        res_xgb = train_and_eval("XGB_SMOTE_UNSW", xgb_smote, X_res, y_res, X_test, y_test_enc, target_names)
+        
+        start_time = time.time()
+        xgb_smote.fit(X_res, y_res_mapped)
+        duration = time.time() - start_time
+        
+        y_pred_mapped = xgb_smote.predict(X_test)
+        y_probs_mapped = xgb_smote.predict_proba(X_test)
+        
+        y_pred = np.array([inverse_mapping.get(y, y) for y in y_pred_mapped])
+        
+        y_probs = np.zeros((len(X_test), len(target_names)))
+        for mapped_idx, orig_idx in inverse_mapping.items():
+            y_probs[:, orig_idx] = y_probs_mapped[:, mapped_idx]
+            
+        y_test_bin = label_binarize(y_test_enc, classes=np.arange(len(target_names)))
+        auc_pr = average_precision_score(y_test_bin, y_probs, average='macro')
+        
+        acc = accuracy_score(y_test_enc, y_pred)
+        report = classification_report(y_test_enc, y_pred, target_names=target_names, output_dict=True, zero_division=0)
+        
+        res_xgb = {"name": "XGB_SMOTE_UNSW", "accuracy": acc, "auc_pr": auc_pr, "report": report, "duration": duration}
         results.append(res_xgb)
         joblib.dump(xgb_smote, os.path.join(MODELS_PATH, "xgb_unsw_smote.pkl"))
     except Exception as e:

@@ -28,13 +28,8 @@ def clean_data(df):
     print("Cleaning dataset...")
     df.columns = df.columns.astype(str).str.strip().str.lower().str.replace(' ', '_')
     
-    # Handle Infinity: Cap to max finite value per column
-    for col in df.select_dtypes(include=[np.number]).columns:
-        max_val = df.loc[df[col] != np.inf, col].max()
-        df[col] = df[col].replace(np.inf, max_val)
-        
-    # Handle NaNs: Impute with Median
-    df = df.fillna(df.median(numeric_only=True))
+    # Handle Infinity: Replace with NaN to be imputed after split
+    df.replace([np.inf, -np.inf], np.nan, inplace=True)
     return df
 
 def main():
@@ -63,17 +58,22 @@ def main():
     # Ensure numeric
     for col in X.columns:
         X[col] = pd.to_numeric(X[col], errors='coerce')
-    X = X.fillna(0) # Final safety fallback
+
     
     # Stratified Split (80/20)
     print("Splitting data...")
     sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
     train_idx, test_idx = next(sss.split(X, y))
     
-    X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+    X_train, X_test = X.iloc[train_idx].copy(), X.iloc[test_idx].copy()
     y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
     str_labels_train = original_str_labels.iloc[train_idx]
     str_labels_test = original_str_labels.iloc[test_idx]
+    
+    print("Imputing NaNs based on X_train statistics...")
+    train_medians = X_train.median(numeric_only=True)
+    X_train = X_train.fillna(train_medians)
+    X_test = X_test.fillna(train_medians)
     
     # Scaling
     print("Scaling features...")

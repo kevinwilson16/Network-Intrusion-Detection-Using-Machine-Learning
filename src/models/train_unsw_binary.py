@@ -6,7 +6,7 @@ import time
 import json
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support, roc_auc_score, precision_recall_curve, auc
+from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support, roc_auc_score, average_precision_score
 
 # Paths
 PROCESSED_DATA_PATH = "data/unsw-nb15/processed"
@@ -40,8 +40,7 @@ def train_and_eval_binary(name, model, X_train, y_train, X_test, y_test):
     precision, recall, f1, _ = precision_recall_fscore_support(y_test, y_pred, average='binary')
     
     # Calculate AUC-PR (Area Under Precision-Recall Curve)
-    p, r, _ = precision_recall_curve(y_test, y_probs)
-    auc_pr = auc(r, p)
+    auc_pr = average_precision_score(y_test, y_probs)
     
     print(f"Accuracy: {acc:.4f} | F1: {f1:.4f} | AUC-PR: {auc_pr:.4f} | Time: {duration:.2f}s")
     

@@ -171,11 +171,14 @@ def plot_hybrid_bottleneck():
 
     # UNSW-NB15
     try:
-        with open(os.path.join(METRICS_PATH, "unsw_results.json"), 'r') as f:
-             unsw_data = json.load(f)
+        with open(os.path.join(METRICS_PATH, "unsw_multiclass_results.json"), 'r') as f:
+             multi_data = json.load(f)
              # XGB SMOTE is index 1 in supervised
-             xgb_unsw = unsw_data['supervised'][1]['report']
-             hyb_unsw = unsw_data['hybrid']['report']
+             xgb_unsw = multi_data['supervised'][1]['report']
+             
+        with open(os.path.join(METRICS_PATH, "unsw_hybrid_results.json"), 'r') as f:
+             hyb_data = json.load(f)
+             hyb_unsw = hyb_data['report']
              
         classes = [c for c in xgb_unsw.keys() if c not in ['accuracy', 'macro avg', 'weighted avg', 'Normal']]
         classes = sorted(classes)[:7]

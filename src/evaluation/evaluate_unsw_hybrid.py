@@ -21,15 +21,14 @@ def load_data():
     return X_test, y_test
 
 def main():
-    X_test, y_test = load_data()
+    X_test_full, y_test_full = load_data()
     
     print("\n--- Experiment: Hybrid (IF -> XGB) on UNSW-NB15 ---")
-    start_time = time.time()
     
     # Load Label Encoder
     try:
         le = joblib.load(os.path.join(MODELS_PATH, "unsw_label_encoder.pkl"))
-        y_test_enc = le.transform(y_test)
+        y_test_enc_full = le.transform(y_test_full)
         target_names = le.classes_
         normal_idx = list(target_names).index('Normal')
     except Exception as e:
@@ -43,6 +42,21 @@ def main():
         print(f"Error loading Isolation Forest model: {e}")
         return
         
+    # Load XGB model to find valid classes
+    try:
+        xgb_model = joblib.load(os.path.join(MODELS_PATH, "xgb_unsw_smote.pkl"))
+        valid_classes = xgb_model.classes_
+    except Exception as e:
+        print(f"Error loading XGB model: {e}")
+        return
+
+    print("Filtering test data to match XGBoost classes...")
+    mask_valid = np.isin(y_test_enc_full, valid_classes)
+    X_test = X_test_full[mask_valid].reset_index(drop=True)
+    y_test_enc = y_test_enc_full[mask_valid]
+    filtered_target_names = [target_names[i] for i in valid_classes]
+
+    start_time = time.time()
     preds_raw = iso_forest.predict(X_test)
     anomaly_mask = (preds_raw == -1)
     
@@ -50,18 +64,13 @@ def main():
     
     if np.any(anomaly_mask):
         X_test_flagged = X_test[anomaly_mask]
-        # Use our saved XGB model
-        try:
-           xgb_model = joblib.load(os.path.join(MODELS_PATH, "xgb_unsw_smote.pkl"))
-           stage2_preds = xgb_model.predict(X_test_flagged)
-           final_hybrid_preds[anomaly_mask] = stage2_preds
-        except Exception as e:
-           print(f"Hybrid Stage 2 skipped (XGB model error): {e}")
+        stage2_preds = xgb_model.predict(X_test_flagged)
+        final_hybrid_preds[anomaly_mask] = stage2_preds
 
     duration = time.time() - start_time
     
     acc_hyb = accuracy_score(y_test_enc, final_hybrid_preds)
-    report_hyb = classification_report(y_test_enc, final_hybrid_preds, target_names=target_names, output_dict=True, zero_division=0)
+    report_hyb = classification_report(y_test_enc, final_hybrid_preds, labels=valid_classes, target_names=filtered_target_names, output_dict=True, zero_division=0)
     print(f"Hybrid Accuracy: {acc_hyb:.4f} | Inference Time: {duration:.2f}s")
     
     # Track flagged metrics

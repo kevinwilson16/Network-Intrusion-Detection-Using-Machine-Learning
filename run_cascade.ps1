@@ -4,6 +4,9 @@ Write-Host "--- DATA PREPROCESSING START ---"
 python src\data\preprocess_cicids2017.py
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+python src\data\preprocess_multiclass.py
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
 python src\data\preprocess_unsw.py
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 

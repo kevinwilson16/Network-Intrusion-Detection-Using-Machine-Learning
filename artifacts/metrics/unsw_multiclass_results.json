@@ -3,6 +3,7 @@
         {
             "name": "XGB_BalancedWeights_UNSW",
             "accuracy": 0.9697879962992855,
+            "auc_pr": 0.5707326505718799,
             "report": {
                 "Analysis": {
                     "precision": 0.09671179883945841,
@@ -84,11 +85,12 @@
                     "support": 508010.0
                 }
             },
-            "duration": 27.86432647705078
+            "duration": 26.424198865890503
         },
         {
             "name": "XGB_SMOTE_UNSW",
             "accuracy": 0.972754473337139,
+            "auc_pr": 0.5544424467849194,
             "report": {
                 "Analysis": {
                     "precision": 0.1513157894736842,
@@ -170,7 +172,7 @@
                     "support": 508010.0
                 }
             },
-            "duration": 350.91249203681946
+            "duration": 359.41987323760986
         }
     ],
     "metadata": {

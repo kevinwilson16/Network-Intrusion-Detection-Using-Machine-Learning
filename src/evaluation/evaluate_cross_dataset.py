@@ -6,7 +6,7 @@ import time
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import RobustScaler
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support, average_precision_score
+from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support, average_precision_score, confusion_matrix
 
 # Paths
 CROSS_DATA_PATH = "data/cross_dataset"
@@ -71,6 +71,9 @@ def evaluate_model(model, X_test, y_test, name):
     
     auc_pr = average_precision_score(y_test, y_probs)
     
+    cm = confusion_matrix(y_test, y_pred)
+    cr = classification_report(y_test, y_pred, output_dict=True, zero_division=0)
+    
     print(f"Result for {name}: Acc={acc:.4f}, F1={f1:.4f}, AUC-PR={auc_pr:.4f}, Time={duration:.2f}s")
     
     return {
@@ -79,7 +82,9 @@ def evaluate_model(model, X_test, y_test, name):
         "recall": rec,
         "f1": f1,
         "auc_pr": auc_pr,
-        "duration": duration
+        "duration": duration,
+        "confusion_matrix": cm.tolist(),
+        "classification_report": cr
     }
 
 def run_experiment(train_name, train_path, test_name, test_path):
