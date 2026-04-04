@@ -5,7 +5,7 @@ import numpy as np
 import time
 import json
 from sklearn.ensemble import IsolationForest
-from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support
+from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support, confusion_matrix
 
 # Paths
 PROCESSED_DATA_PATH = "data/cicids2017/processed"
@@ -55,7 +55,9 @@ def main():
         duration = time.time() - start_time
         
         # Prediction: 1 = Normal, -1 = Anomaly
+        inf_start = time.time()
         preds_raw = iso_forest.predict(X_test)
+        inference_duration = time.time() - inf_start
         
         # Map to our metrics: 1 = Attack, 0 = Normal
         # Logic: If -1 (Anomaly), then 1 (Attack). If 1 (Normal), then 0 (Normal).
@@ -64,7 +66,10 @@ def main():
         acc = accuracy_score(y_test, y_pred)
         precision, recall, f1, _ = precision_recall_fscore_support(y_test, y_pred, average='binary', zero_division=0)
         
-        print(f"Accuracy: {acc:.4f} | Precision: {precision:.4f} | Recall: {recall:.4f} | F1: {f1:.4f}")
+        tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+        far = fp / (fp + tn) if (fp + tn) > 0 else 0.0
+        
+        print(f"Accuracy: {acc:.4f} | Precision: {precision:.4f} | Recall: {recall:.4f} | F1: {f1:.4f} | FAR: {far:.4f}")
         
         results.append({
             "contamination": contam,
@@ -72,7 +77,9 @@ def main():
             "precision": precision,
             "recall": recall,
             "f1": f1,
-            "duration": duration
+            "far": far,
+            "duration": duration,
+            "inference_duration": inference_duration
         })
         
         # Save the 0.15 model as the primary unsupervised model artifact
