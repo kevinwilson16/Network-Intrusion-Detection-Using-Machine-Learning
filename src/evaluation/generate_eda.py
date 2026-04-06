@@ -108,10 +108,14 @@ def generate_section_a():
     try:
         cic = pd.read_parquet('data/cicids2017/processed/train_multiclass.parquet')
         
+        import joblib
+        le = joblib.load('artifacts/models/multiclass_label_encoder.pkl')
+        cic['attack_type'] = le.inverse_transform(cic['multiclass_label'].astype(int))
+        
         # 1. Multiclass (exclude BENIGN / Normal)
-        exclude_cic = ['BENIGN', 'Normal', '0', 0]
+        exclude_cic = ['BENIGN', 'Normal', '0', 0, 'nan', 'Unknown']
         plot_multiclass(
-            cic, 'multiclass_label', 'CIC-IDS2017', exclude_cic,
+            cic, 'attack_type', 'CIC-IDS2017', exclude_cic,
             'CIC-IDS2017 Attack Distribution (Excluding BENIGN)',
             'cic_multiclass.png'
         )

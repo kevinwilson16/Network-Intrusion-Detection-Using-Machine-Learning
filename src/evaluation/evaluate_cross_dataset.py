@@ -72,6 +72,8 @@ def evaluate_model(model, X_test, y_test, name):
     auc_pr = average_precision_score(y_test, y_probs)
     
     cm = confusion_matrix(y_test, y_pred)
+    tn, fp, fn, tp = cm.ravel()
+    far = fp / (fp + tn) if (fp + tn) > 0 else 0.0
     cr = classification_report(y_test, y_pred, output_dict=True, zero_division=0)
     
     print(f"Result for {name}: Acc={acc:.4f}, F1={f1:.4f}, AUC-PR={auc_pr:.4f}, Time={duration:.2f}s")
@@ -81,6 +83,7 @@ def evaluate_model(model, X_test, y_test, name):
         "precision": prec,
         "recall": rec,
         "f1": f1,
+        "far": far,
         "auc_pr": auc_pr,
         "duration": duration,
         "confusion_matrix": cm.tolist(),

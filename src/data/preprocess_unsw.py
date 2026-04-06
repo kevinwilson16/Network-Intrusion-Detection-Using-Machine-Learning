@@ -81,7 +81,7 @@ def split_and_save(df):
     print("Replacing Infs with NaNs before the split...")
     X.replace([np.inf, -np.inf], np.nan, inplace=True)
     
-    # ------------- 1. STRATIFIED SPLIT -------------
+    # STRATIFIED SPLIT
     X_train, X_test, y_train_multi, y_test_multi = train_test_split(
         X, y_multiclass, test_size=0.2, random_state=42, stratify=y_multiclass
     )
@@ -90,7 +90,7 @@ def split_and_save(df):
     X_train = pd.DataFrame(X_train, columns=X.columns)
     X_test = pd.DataFrame(X_test, columns=X.columns)
     
-    # ------------- 1.5. CATEGORICAL ENCODING -------------
+    # CATEGORICAL ENCODING
     from sklearn.preprocessing import OneHotEncoder
     categorical_cols = ['proto', 'state', 'service']
     categorical_cols = [c for c in categorical_cols if c in X_train.columns]
@@ -109,7 +109,7 @@ def split_and_save(df):
         X_train = pd.concat([X_train.drop(columns=categorical_cols), train_cat_df], axis=1)
         X_test = pd.concat([X_test.drop(columns=categorical_cols), test_cat_df], axis=1)
     
-    # ------------- 2. RIGOROUS IMPUTATION -------------
+    # IMPUTATION
     print("Imputing NaNs purely based on X_train statistics...")
     numeric_cols = X_train.select_dtypes(include=[np.number]).columns
     
@@ -119,7 +119,7 @@ def split_and_save(df):
             X_train[col] = X_train[col].fillna(median_train_val)
             X_test[col] = X_test[col].fillna(median_train_val)
     
-    # ------------- 3. ROBUST SCALING -------------
+    # ROBUST SCALING
     scaler = RobustScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
