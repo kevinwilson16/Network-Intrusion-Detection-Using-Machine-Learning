@@ -38,8 +38,9 @@ def clean_data(df):
     # Standardise column names: strip spaces, lowercase, replace spaces with underscores
     df.columns = df.columns.astype(str).str.strip().str.lower().str.replace(' ', '_')
     
-    return df
 
+    df['label'] = df['label'].astype(str).str.strip()
+    df.loc[df['label'].str.contains('BENIGN', case=False, na=False), 'label'] = 'BENIGN'
     
     return df
 

@@ -1,14 +1,14 @@
 {
     "experiment_name": "Two-Stage Hybrid Pipeline (IF -> XGBoost)",
-    "accuracy": 0.7991918175129715,
-    "inference_duration_seconds": 3.0206339359283447,
-    "stage1_anomalies_flagged": 93637,
-    "stage1_bypassed": 530232,
+    "accuracy": 0.8770076428643343,
+    "inference_duration_seconds": 2.7587525844573975,
+    "stage1_anomalies_flagged": 84860,
+    "stage1_bypassed": 481289,
     "report": {
         "BENIGN": {
-            "precision": 0.784066641136308,
-            "recall": 0.9997910342703796,
-            "f1-score": 0.8788849120486657,
+            "precision": 0.867280529198856,
+            "recall": 0.9998526241696362,
+            "f1-score": 0.9288600670458644,
             "support": 454620.0
         },
         "Bot": {
@@ -18,39 +18,39 @@
             "support": 393.0
         },
         "DDoS": {
-            "precision": 0.999914675767918,
-            "recall": 0.45768404608474905,
-            "f1-score": 0.6279437374413932,
-            "support": 25605.0
+            "precision": 0.9998947811447811,
+            "recall": 0.37112395532297116,
+            "f1-score": 0.5413272571916833,
+            "support": 25606.0
         },
         "DoS GoldenEye": {
-            "precision": 0.9948979591836735,
-            "recall": 0.5682370082564352,
-            "f1-score": 0.723338485316847,
+            "precision": 1.0,
+            "recall": 0.5633802816901409,
+            "f1-score": 0.7207207207207207,
             "support": 2059.0
         },
         "DoS Hulk": {
-            "precision": 0.999796864949047,
-            "recall": 0.6389916693714162,
-            "f1-score": 0.7796757841377125,
+            "precision": 0.9999325463743676,
+            "recall": 0.6415233149410364,
+            "f1-score": 0.781598892770052,
             "support": 46215.0
         },
         "DoS Slowhttptest": {
-            "precision": 0.9214501510574018,
-            "recall": 0.8318181818181818,
-            "f1-score": 0.8743430482560918,
+            "precision": 0.937246963562753,
+            "recall": 0.8418181818181818,
+            "f1-score": 0.8869731800766284,
             "support": 1100.0
         },
         "DoS slowloris": {
-            "precision": 0.9984615384615385,
-            "recall": 0.5599654874892148,
-            "f1-score": 0.7175234936428966,
+            "precision": 0.9984591679506933,
+            "recall": 0.5591026747195859,
+            "f1-score": 0.7168141592920354,
             "support": 1159.0
         },
         "FTP-Patator": {
-            "precision": 1.0,
-            "recall": 0.0006297229219143577,
-            "f1-score": 0.0012586532410320957,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1-score": 0.0,
             "support": 1588.0
         },
         "Heartbleed": {
@@ -60,59 +60,53 @@
             "support": 2.0
         },
         "Infiltration": {
-            "precision": 0.5,
+            "precision": 0.6,
             "recall": 0.8571428571428571,
-            "f1-score": 0.631578947368421,
+            "f1-score": 0.7058823529411765,
             "support": 7.0
         },
         "PortScan": {
-            "precision": 0.98,
-            "recall": 0.001541559176996162,
-            "f1-score": 0.0030782761653474055,
+            "precision": 1.0,
+            "recall": 0.0015100987856288932,
+            "f1-score": 0.0030156436514418546,
             "support": 31786.0
         },
         "SSH-Patator": {
-            "precision": 1.0,
-            "recall": 0.0008481764206955047,
-            "f1-score": 0.001694915254237288,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1-score": 0.0,
             "support": 1179.0
         },
-        "Web Attack \u0096 Brute Force": {
+        "Web Attack Brute Force": {
             "precision": 0.8823529411764706,
             "recall": 0.04983388704318937,
             "f1-score": 0.09433962264150944,
             "support": 301.0
         },
-        "Web Attack \u0096 Sql Injection": {
+        "Web Attack Sql Injection": {
             "precision": 0.0,
             "recall": 0.0,
             "f1-score": 0.0,
             "support": 4.0
         },
-        "Web Attack \u0096 XSS": {
+        "Web Attack XSS": {
             "precision": 1.0,
             "recall": 0.023076923076923078,
             "f1-score": 0.045112781954887216,
             "support": 130.0
         },
-        "NaN": {
-            "precision": 0.0,
-            "recall": 0.0,
-            "f1-score": 0.0,
-            "support": 57721.0
-        },
-        "accuracy": 0.7991918175129715,
+        "accuracy": 0.8770076428643343,
         "macro avg": {
-            "precision": 0.8163087982332723,
-            "recall": 0.37514269996146155,
-            "f1-score": 0.4002436428506091,
-            "support": 623869.0
+            "precision": 0.7523444619605281,
+            "recall": 0.3947391630013722,
+            "f1-score": 0.4299846870951135,
+            "support": 566149.0
         },
         "weighted avg": {
-            "precision": 0.7488615061856566,
-            "recall": 0.7991918175129715,
-            "f1-score": 0.7294881055884171,
-            "support": 623869.0
+            "precision": 0.8883284023321362,
+            "recall": 0.8770076428643343,
+            "f1-score": 0.8402355846527693,
+            "support": 566149.0
         }
     }
 }

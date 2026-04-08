@@ -38,6 +38,35 @@ def main():
     df = load_and_concat_raw_data(RAW_DATA_PATH)
     df = clean_data(df)
     
+    print("Cleaning and validating labels...")
+    
+    print("Total raw unique label values and counts:")
+    print(df['label'].value_counts(dropna=False))
+    
+    null_or_empty = df['label'].isna() | (df['label'].astype(str).str.strip() == '') | (df['label'].astype(str).str.strip().str.lower() == 'nan')
+    print(f"Count of null/NaN/empty/whitespace-only labels: {null_or_empty.sum()}")
+    
+    df['label'] = df['label'].astype(str).str.strip()
+    df['label'] = df['label'].str.replace('[\u2013\u2014\x96]', '-', regex=True)
+    df['label'] = df['label'].str.replace('\xa0', ' ', regex=True)
+    df['label'] = df['label'].str.replace(r'\s+', ' ', regex=True)
+    df['label'] = df['label'].str.replace(r'Web Attack\s*-\s*', 'Web Attack ', regex=True)
+    df.loc[df['label'].str.lower() == 'web attack sql injection', 'label'] = 'Web Attack Sql Injection'
+    
+    official_labels = {
+        'BENIGN', 'DoS Hulk', 'PortScan', 'DDoS', 'DoS GoldenEye',
+        'FTP-Patator', 'SSH-Patator', 'DoS slowloris', 'DoS Slowhttptest',
+        'Bot', 'Web Attack Brute Force', 'Web Attack XSS', 'Infiltration',
+        'Web Attack Sql Injection', 'Heartbleed'
+    }
+    
+    invalid_labels = df[~df['label'].isin(official_labels)]['label'].unique()
+    print("Label values that do not match the official set after normalization:")
+    for inv in invalid_labels:
+        print(f" - '{inv}'")
+        
+    df = df[df['label'].isin(official_labels)].copy()
+    
     print("Encoding labels for multiclass...")
     le = LabelEncoder()
     df['multiclass_label'] = le.fit_transform(df['label'])

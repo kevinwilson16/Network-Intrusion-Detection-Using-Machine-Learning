@@ -1,36 +1,36 @@
 {
     "experiment_name": "Isolation Forest Sensitivity Analysis",
-    "natural_attack_frequency": 0.27129052733827136,
+    "natural_attack_frequency": 0.19699645940950122,
     "results": [
         {
             "contamination": 0.1,
-            "accuracy": 0.7261059613476547,
-            "precision": 0.4869341481064565,
-            "recall": 0.1789079994564222,
-            "f1": 0.2616728743399846,
-            "far": 0.07017949056354758,
-            "duration": 12.23379135131836,
-            "inference_duration": 3.089045524597168
+            "accuracy": 0.7970128005171784,
+            "precision": 0.46996529007579513,
+            "recall": 0.23794708102825274,
+            "f1": 0.31593421311094844,
+            "far": 0.06583520302670362,
+            "duration": 10.58264708518982,
+            "inference_duration": 2.4934446811676025
         },
         {
             "contamination": 0.15,
-            "accuracy": 0.7199091475934851,
-            "precision": 0.47067932548031227,
-            "recall": 0.2604033110978499,
-            "f1": 0.33530123323417754,
-            "far": 0.10902292024108046,
-            "duration": 13.223424673080444,
-            "inference_duration": 2.945502996444702
+            "accuracy": 0.8013862075178089,
+            "precision": 0.49460287532406316,
+            "recall": 0.3763326130423477,
+            "f1": 0.42743738193075986,
+            "far": 0.09433812854691831,
+            "duration": 10.685751914978027,
+            "inference_duration": 2.493180990219116
         },
         {
             "contamination": 0.2,
-            "accuracy": 0.6928938607303777,
-            "precision": 0.4104085642115392,
-            "recall": 0.3023946965713239,
-            "f1": 0.3482177483551848,
-            "far": 0.1617284765298491,
-            "duration": 11.818044900894165,
-            "inference_duration": 2.769073247909546
+            "accuracy": 0.780358174261546,
+            "precision": 0.44329450061477765,
+            "recall": 0.4493360471267563,
+            "f1": 0.4462948285228295,
+            "far": 0.13843429677532884,
+            "duration": 10.571760177612305,
+            "inference_duration": 2.4818167686462402
         }
     ],
     "mapping_logic": "-1 (Anomaly) -> 1 (Attack), 1 (Normal) -> 0 (Normal)"
