@@ -11,7 +11,7 @@ PROCESSED_DATA_PATH = "data/unsw-nb15/processed"
 def load_and_merge_unsw():
     print("Loading UNSW-NB15 raw files...")
     
-    # Define Column Names from NUSW-NB15_features.csv
+    
     cols = [
         'srcip', 'sport', 'dstip', 'dsport', 'proto', 'state', 'dur', 'sbytes', 
         'dbytes', 'sttl', 'dttl', 'sloss', 'dloss', 'service', 'Sload', 'Dload', 
@@ -27,7 +27,7 @@ def load_and_merge_unsw():
     for i in range(1, 5):
         file_path = os.path.join(RAW_DATA_PATH, f"UNSW-NB15_{i}.csv")
         print(f"Reading {file_path}...")
-        # Note: Raw files do not have headers, and use latin-1 encoding usually
+
         df = pd.read_csv(file_path, header=None, names=cols, low_memory=False, encoding='latin-1')
         dfs.append(df)
     
@@ -36,22 +36,15 @@ def load_and_merge_unsw():
 def clean_unsw(df):
     print("Cleaning data (Leakage Prevention & Robustness)...")
     
-    # 1. Drop Leaky Features
-    # IPs and Ports are specific to the environment
-    # Timestamps (Stime, Ltime) are temporal leakage
+    
     leaky_cols = ['srcip', 'sport', 'dstip', 'dsport', 'Stime', 'Ltime']
     df.drop(columns=leaky_cols, inplace=True, errors='ignore')
     
-    # 2. Fix malformed labels and characters
-    # In UNSW-NB15, attack_cat can have NaNs for 'Normal' rows
     df['attack_cat'] = df['attack_cat'].fillna('Normal').str.strip()
     
-    # Handle empty strings or dashes often found in some versions of this dataset
     print("Replacing malformed characters (' ', '-') with NaN...")
     df.replace([' ', '-'], np.nan, inplace=True)
     
-    # Convert obvious numeric columns to float (they might be object due to the spaces)
-    # Identifying potential numeric columns (excluding categorical ones)
     potential_numeric = [
         'dur', 'sbytes', 'dbytes', 'sttl', 'dttl', 'sloss', 'dloss', 'Sload', 'Dload', 
         'Spkts', 'Dpkts', 'swin', 'dwin', 'stcpb', 'dtcpb', 'smeansz', 'dmeansz', 
@@ -67,7 +60,6 @@ def clean_unsw(df):
     # Identify non-numeric columns for separate handling
     numeric_cols = df.select_dtypes(include=[np.number]).columns
 
-    # We NO LONGER do One-Hot Encoding or global fillna() here before the split to prevent structural leakage.
     return df
 
 
@@ -132,8 +124,6 @@ def split_and_save(df):
     train_final = X_train_df.copy()
     train_final['multiclass_label'] = y_train_multi.values
     
-    # Make sure we use proper alignment for numpy to dict extraction
-    # Since y_binary is a Series, use .loc for absolute indexing matching train_test_split
     train_final['label'] = y_binary.loc[y_train_multi.index].values
     
     test_final = X_test_df.copy()

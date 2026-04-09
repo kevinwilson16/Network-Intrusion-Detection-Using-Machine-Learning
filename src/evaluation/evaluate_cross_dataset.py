@@ -32,7 +32,7 @@ def load_split_scale(train_path, test_path):
     
     X_train, X_val, X_test_ext = X_train.copy(), X_val.copy(), X_test_ext.copy()
     
-    # ------------- RIGOROUS IMPUTATION -------------
+   
     print("Imputing NaNs and Infs strictly from X_train...")
     numeric_cols = X_train.select_dtypes(include=[np.number]).columns
     for col in numeric_cols:
@@ -47,8 +47,8 @@ def load_split_scale(train_path, test_path):
             X_val[col] = X_val[col].fillna(median_train_val)
             X_test_ext[col] = X_test_ext[col].fillna(median_train_val)
             
-    # ------------- ROBUST SCALING -------------
-    # Fit Scaler STRICTLY on the training subset of the training dataset
+    
+    # Fit Scaler on the training subset of the training dataset
     scaler = RobustScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     
@@ -129,11 +129,11 @@ def main():
          
     results = []
     
-    # Experiment 1: Train CIC -> Test UNSW
+    # Experiment 1: Train CIC and Test UNSW
     res1 = run_experiment("CIC-IDS2017", cic_path, "UNSW-NB15", unsw_path)
     results.append(res1)
     
-    # Experiment 2: Train UNSW -> Test CIC
+    # Experiment 2: Train UNSW and Test CIC
     res2 = run_experiment("UNSW-NB15", unsw_path, "CIC-IDS2017", cic_path)
     results.append(res2)
     

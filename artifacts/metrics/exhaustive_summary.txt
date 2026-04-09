@@ -1,0 +1,83 @@
+# Exhaustive Academic Metrics Extraction
+
+## 1. Supervised Binary Baselines
+
+### CIC-IDS2017
+| Model / Config                           |   Accuracy |  Precision |     Recall |   F1-Score |        FAR |     AUC-PR |   Inference Time (s) |
+|------------------------------------------|------------|------------|------------|------------|------------|------------|----------------------|
+| Logistic Regression                      |     0.7111 |     0.4658 |     0.4416 |     0.4534 |     0.1886 |     0.6402 |             308.6690 |
+| Random Forest                            |     0.9976 |     0.9932 |     0.9980 |     0.9956 |     0.0025 |     0.9998 |             135.5945 |
+
+
+### UNSW-NB15
+| Model / Config                           |   Accuracy |  Precision |     Recall |   F1-Score |        FAR |     AUC-PR |   Inference Time (s) |
+|------------------------------------------|------------|------------|------------|------------|------------|------------|----------------------|
+| LogisticRegression_UNSW                  |     0.9834 |     0.8921 |     0.9886 |     0.9379 |     0.0173 |     0.8207 |             397.6971 |
+| RandomForest_UNSW                        |     0.9878 |     0.9122 |     1.0000 |     0.9540 |     0.0139 |     0.9980 |              59.6374 |
+
+
+## 2. Multiclass Architecture
+
+### CIC-IDS2017 (XGB_Balanced and XGB_SMOTE)
+| Model / Config                           |   Accuracy |  Precision |     Recall |   F1-Score |        FAR |     AUC-PR |   Inference Time (s) |
+|------------------------------------------|------------|------------|------------|------------|------------|------------|----------------------|
+| XGB_BalancedWeights                      |     0.9981 |     0.8428 |     0.8921 |     0.8624 |     0.0020 |     0.9016 |              37.1038 |
+| XGB_SMOTE                                |     0.9968 |     0.8020 |     0.9037 |     0.8352 |     0.0035 |     0.9015 |             175.9431 |
+
+
+### UNSW-NB15 (XGB_Balanced and XGB_SMOTE)
+| Model / Config                           |   Accuracy |  Precision |     Recall |   F1-Score |        FAR |     AUC-PR |   Inference Time (s) |
+|------------------------------------------|------------|------------|------------|------------|------------|------------|----------------------|
+| XGB_BalancedWeights_UNSW                 |     0.9698 |     0.5248 |     0.7011 |     0.5516 |     0.0141 |     0.5707 |              26.1353 |
+| XGB_SMOTE_UNSW                           |     0.9728 |     0.4940 |     0.6807 |     0.5340 |     0.0139 |     0.5544 |             336.8868 |
+
+
+## 3. Unsupervised Baseline (Isolation Forest, Contamination=0.15)
+
+### CIC-IDS2017
+| Model / Config                           |   Accuracy |  Precision |     Recall |   F1-Score |        FAR |     AUC-PR |   Inference Time (s) |
+|------------------------------------------|------------|------------|------------|------------|------------|------------|----------------------|
+| Isolation Forest (c=0.15)                |     0.8014 |     0.4946 |     0.3763 |     0.4274 |     0.0943 |        N/A |               2.4932 |
+
+
+### UNSW-NB15
+| Model / Config                           |   Accuracy |  Precision |     Recall |   F1-Score |        FAR |     AUC-PR |   Inference Time (s) |
+|------------------------------------------|------------|------------|------------|------------|------------|------------|----------------------|
+| Isolation Forest                         |     0.8459 |     0.4085 |     0.4869 |     0.4443 |     0.1021 |        N/A |               2.5954 |
+
+
+## 4. Two-Stage Hybrid Pipeline
+
+### CIC-IDS2017
+| Model / Config                           |   Accuracy |  Precision |     Recall |   F1-Score |        FAR |     AUC-PR |   Inference Time (s) |
+|------------------------------------------|------------|------------|------------|------------|------------|------------|----------------------|
+| Hybrid Pipeline                          |     0.8770 |     0.7523 |     0.3947 |     0.4300 |     0.0001 |        N/A |               2.7588 |
+
+  - **Stage 1 Flagged (Anomalies routed to Stage 2)**: 84,860
+  - **Stage 1 Bypassed (Normal traffic bypassed)**: 481,289
+
+
+### UNSW-NB15
+| Model / Config                           |   Accuracy |  Precision |     Recall |   F1-Score |        FAR |     AUC-PR |   Inference Time (s) |
+|------------------------------------------|------------|------------|------------|------------|------------|------------|----------------------|
+| Hybrid Pipeline (Overall/Macro)          |     0.9145 |     0.4792 |     0.4978 |     0.4414 |     0.0122 |        N/A |               2.8367 |
+| Hybrid Pipeline (Weighted)               |     0.9145 |     0.9224 |     0.9145 |     0.9032 |     0.0122 |        N/A |               2.8367 |
+
+  - **Stage 1 Flagged (Anomalies routed to Stage 2)**: 76,582
+  - **Stage 1 Bypassed (Normal traffic bypassed)**: 431,428
+
+
+## 5. Cross-Dataset Evaluation (Topological Overfitting Analysis)
+
+### CIC-IDS2017_to_UNSW-NB15
+| Model / Config                           |   Accuracy |  Precision |     Recall |   F1-Score |        FAR |     AUC-PR |   Inference Time (s) |
+|------------------------------------------|------------|------------|------------|------------|------------|------------|----------------------|
+| Random Forest                            |     0.8735 |     0.0000 |     0.0000 |     0.0000 |     0.0000 |     0.1043 |               1.6562 |
+
+
+### UNSW-NB15_to_CIC-IDS2017
+| Model / Config                           |   Accuracy |  Precision |     Recall |   F1-Score |        FAR |     AUC-PR |   Inference Time (s) |
+|------------------------------------------|------------|------------|------------|------------|------------|------------|----------------------|
+| Random Forest                            |     0.4952 |     0.1007 |     0.1085 |     0.1044 |     0.3609 |     0.2229 |               2.1744 |
+
+

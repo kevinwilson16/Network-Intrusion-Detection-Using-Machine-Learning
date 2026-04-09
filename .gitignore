@@ -18,16 +18,3 @@ artifacts/models/*.pkl
 .env
 run_cascade.ps1
 
-# Dissertation Metrics
-extract_exhaustive_metrics.py
-artifacts/metrics/exhaustive_summary.txt
-
-Implementation.txt
-
-generate_feature_importance_plots.py
-generate_dissertation_metrics.py
-
-
-generate_dissertation_diagrams.py
-
-generate_dissertation_plots.py

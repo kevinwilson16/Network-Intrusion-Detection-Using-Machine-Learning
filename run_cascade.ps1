@@ -1,6 +1,6 @@
 .\venv\Scripts\Activate.ps1
 
-Write-Host "--- DATA PREPROCESSING START ---"
+Write-Host "DATA PREPROCESSING"
 python src\data\preprocess_cicids2017.py
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
@@ -13,7 +13,7 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 python src\data\cross_dataset_utils.py
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-Write-Host "--- CIC-IDS2017 TRAINING START ---"
+Write-Host "CIC-IDS2017 TRAINING"
 python src\models\train_binary.py
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
@@ -26,7 +26,7 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 python src\evaluation\evaluate_hybrid.py
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-Write-Host "--- UNSW-NB15 TRAINING START ---"
+Write-Host "UNSW-NB15 TRAINING START"
 python src\models\train_unsw_binary.py
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
@@ -39,12 +39,12 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 python src\evaluation\evaluate_unsw_hybrid.py
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-Write-Host "--- CROSS DATASET EVALUATION START ---"
+Write-Host "CROSS DATASET EVALUATION"
 python src\evaluation\evaluate_cross_dataset.py
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-Write-Host "--- ARTIFACT GENERATION START ---"
+Write-Host "PLOT GENERATION"
 python src\evaluation\generate_artifacts.py
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-Write-Host "--- CASCADE COMPLETE SUCCESSFULLY! ---"
+Write-Host "COMPLETE"
