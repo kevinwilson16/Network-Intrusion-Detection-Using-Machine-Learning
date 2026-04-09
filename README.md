@@ -24,25 +24,3 @@ This project evaluates supervised, unsupervised, and hybrid machine learning mod
 │   └── evaluation/    # Metric extraction, evaluation pipelines, and visualization
 ├── requirements.txt   # Python dependencies
 ```
-
-## Setup/Installation
-
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd <repository-directory>
-   ```
-
-2. Create and activate a virtual environment (optional but recommended):
-   ```bash
-   python -m venv venv
-   # On Windows:
-   venv\Scripts\activate
-   # On Linux/Mac:
-   source venv/bin/activate
-   ```
-
-3. Install requirements:
-   ```bash
-   pip install -r requirements.txt
-   ```
