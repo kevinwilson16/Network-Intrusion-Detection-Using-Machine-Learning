@@ -23,7 +23,6 @@ def load_and_concat_raw_data(data_path):
     total_files = len(all_files)
     for i, file in enumerate(all_files, 1):
         print(f"[{i}/{total_files}] Reading {os.path.basename(file)}...")
-        # CICIDS2017 files can have mixed types or bad rows, we read carefully
         df = pd.read_csv(file, skipinitialspace=True, encoding='latin1')
         df_list.append(df)
         
@@ -50,7 +49,6 @@ def map_binary_labels(df):
     if 'label' not in df.columns:
         raise ValueError("Could not find 'label' column. Columns present: " + str(df.columns))
         
-    # Check what the actual 'Normal' string is. usually 'BENIGN'
     benign_label = 'BENIGN'
     
     df['is_attack'] = (df['label'] != benign_label).astype(int)
@@ -78,7 +76,6 @@ def split_and_scale(df):
     print("Replacing Infs with NaNs before the split...")
     X.replace([np.inf, -np.inf], np.nan, inplace=True)
     
-    # ------------- 1. STRATIFIED SPLIT  -------------
     sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
     train_idx, test_idx = next(sss.split(X, y))
     
@@ -86,18 +83,15 @@ def split_and_scale(df):
     y_train, y_test = y.iloc[train_idx].copy(), y.iloc[test_idx].copy()
     labels_train, labels_test = original_labels.iloc[train_idx].copy(), original_labels.iloc[test_idx].copy()
     
-    # ------------- 2. RIGOROUS IMPUTATION -------------
     print("Imputing NaNs purely based on X_train statistics...")
     numeric_cols = X_train.select_dtypes(include=[np.number]).columns
     
     for col in numeric_cols:
-        # Impute NaNs using X_train median
         if X_train[col].isna().any() or X_test[col].isna().any():
             median_train_val = X_train[col].median()
             X_train[col] = X_train[col].fillna(median_train_val)
             X_test[col] = X_test[col].fillna(median_train_val)
 
-    # ------------- 3. ROBUST SCALING -------------
     scaler = RobustScaler()
     X_train_scaled = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns)
     X_test_scaled = pd.DataFrame(scaler.transform(X_test), columns=X_test.columns)

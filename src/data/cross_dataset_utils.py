@@ -38,10 +38,8 @@ def load_and_map_cic():
     for f in all_files:
         print(f"Reading {os.path.basename(f)}...")
         df = pd.read_csv(f, skipinitialspace=True, encoding='latin1', low_memory=False)
-        # Lowercase and strip columns for consistent mapping
         df.columns = df.columns.str.strip().str.lower()
         
-        # Select and rename columns
         existing_cols = [c for c in mapping.keys() if c in df.columns]
         df_sub = df[existing_cols].copy()
         df_sub.rename(columns=mapping, inplace=True)
@@ -49,19 +47,14 @@ def load_and_map_cic():
         
     final_df = pd.concat(dfs, ignore_index=True)
     
-    # Binary Label Mapping
     final_df['is_attack'] = (final_df['label'] != 'BENIGN').astype(int)
     final_df.drop(columns=['label'], inplace=True)
     
-    # Cleaning
     print("Coercing CIC-IDS2017 shared features to numeric...")
     numeric_cols = [c for c in SHARED_FEATURES if c in final_df.columns]
     for col in numeric_cols:
         final_df[col] = pd.to_numeric(final_df[col], errors='coerce')
-        # We DO NOT impute or handle infinity here to prevent data leakage.
-    
-    # Units: CIC-IDS2017 duration and IAT are already in Microseconds.
-    
+        
     os.makedirs("data/cross_dataset", exist_ok=True)
     final_df.to_parquet("data/cross_dataset/cic_shared_raw.parquet")
     print(f"CIC Shared Raw generated: {len(final_df)} rows.")
@@ -114,9 +107,7 @@ def load_and_map_unsw():
     numeric_cols = [c for c in SHARED_FEATURES if c in final_df.columns]
     for col in numeric_cols:
         final_df[col] = pd.to_numeric(final_df[col], errors='coerce')
-        # We DO NOT impute or handle infinity here to prevent data leakage.
-    
-    # UNIT CONVERSION TO MATCH CIC-IDS2017 (Microseconds)
+      
     print("Applying unit conversions (Seconds and Milliseconds -> Microseconds)...")
     final_df['duration'] = final_df['duration'] * 1e6
     final_df['src_iat_mean'] = final_df['src_iat_mean'] * 1e3
